@@ -1,0 +1,66 @@
+service: swapi-aws-sls
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: "us-east-2"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        - arn:aws:dynamodb:us-east-2:767397822421:table/StarWarsTable
+  httpApi:
+    cors: true
+    contentHandling: CONVERT_TO_BINARY
+    response:
+      defaultHeaders:
+        Content-Type: "'application/json'"
+
+functions:
+  api:
+    handler: src/handlers.healthCheckHandler
+    events:
+      - httpApi:
+          path: /
+          method: get
+
+  getJediTranslate:
+    handler: src/handlers.getJediTranslateHandler
+    events:
+      - httpApi:
+          path: /getJediTranslate
+          method: get
+
+  createJedi:
+    handler: src/handlers.createJediHandler
+    events:
+      - httpApi:
+          path: /crearJedi
+          method: post
+
+  getJedis:
+    handler: src/handlers.getJedisHandler
+    events:
+      - httpApi:
+          path: /obtenerJedis
+          method: get
+
+resources:
+  Resources:
+    StarWarsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: StarWarsTable
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+plugins:
+  - serverless-auto-swagger
+  - serverless-offline
